@@ -9,7 +9,6 @@ def read_string(file):
     return string
 
 
-
 def crossword_reader(file_path: str):
     clues = []
     with open(file_path, "rb") as puzzle_file:
@@ -52,4 +51,3 @@ def crossword_reader(file_path: str):
             clues.append(current_clue)
 
         return crossword.Crossword(title, author, copyright, version, width, height, solution, user_state, clues)
-

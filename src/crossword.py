@@ -27,10 +27,15 @@ class Crossword:
         self.solution = solution
         
         self.clues = clue.assign_clues(clues, solution, width)
-        self.cells = cell.make_cells_from_user_state(user_state)
+
+        self.cells = cell.make_cells_from_user_state(user_state, self.solution, self.width)
 
 
     def get_clues(self, pos = tuple[int, int]) -> tuple[clue.Clue, clue.Clue]:
+        """
+        Get a cells clues
+        Returns a tuple (Clue, Clue) where the first clue is ACROSS and the second DOWN
+        """
         clues = (None, None)
         for clue in self.clues:
             if clue.pos == pos:

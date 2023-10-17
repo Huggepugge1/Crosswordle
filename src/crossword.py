@@ -1,8 +1,23 @@
-import square
+import cell
 import clue
 
+
+ACROSS = 0
+DOWN = 1
+
+
 class Crossword:
-    def __init__(self, title: str, author: str, copyright: str, version: str, width: int, height: int, solution: str, user_state: str, clues: list[str]):
+    def __init__(self, 
+                 title: str, 
+                 author: str, 
+                 copyright: str, 
+                 version: str, 
+                 width: int, 
+                 height: int, 
+                 solution: str, 
+                 user_state: str, 
+                 clues: list[str]):
+
         self.title = title
         self.author = author
         self.copyright = copyright
@@ -12,7 +27,17 @@ class Crossword:
         self.solution = solution
         
         self.clues = clue.assign_clues(clues, solution, width)
-        self.user_state = square.make_squares_from_user_state(user_state)
-        
+        self.cells = cell.make_cells_from_user_state(user_state)
 
+
+    def get_clues(self, pos = tuple[int, int]) -> tuple[clue.Clue, clue.Clue]:
+        clues = (None, None)
+        for clue in self.clues:
+            if clue.pos == pos:
+                if clue.direction == ACROSS:
+                    clues[ACROSS] = clue
+                else:
+                    clues[DOWN] = clue
+
+        return clues
 

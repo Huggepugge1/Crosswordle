@@ -10,7 +10,6 @@ def read_string(file):
 
 
 def crossword_reader(file_path: str) -> crossword.Crossword:
-    clues = []
     with open(file_path, "rb") as puzzle_file:
         checksum   = puzzle_file.read(0x02)
         file_magic = puzzle_file.read(0x0C)

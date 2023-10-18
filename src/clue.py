@@ -27,7 +27,6 @@ def assign_clues(clue_strings: list[str], solution: str, width: int) -> list[Clu
             blank_cells.append(get_pos(pos, width))
     
     for pos, cell in enumerate(solution):
-        print(pos, clues)
         clue_assigned = False
         x, y = get_pos(pos, width)
         if cell != "." and (x == 0 or solution[pos - 1] == "."):
@@ -39,6 +38,6 @@ def assign_clues(clue_strings: list[str], solution: str, width: int) -> list[Clu
             clue_assigned = True
 
         current_clue_number += clue_assigned
-        
-    print(clues)
+
+    return clues
 

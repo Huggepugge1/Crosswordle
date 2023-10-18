@@ -25,9 +25,9 @@ class Crossword:
         self.width = width
         self.height = height
         self.solution = solution
+        self.user_state = user_state
         
         self.clues = clue.assign_clues(clues, solution, width)
-
         self.cells = cell.make_cells_from_user_state(user_state, self.solution, self.width)
 
 

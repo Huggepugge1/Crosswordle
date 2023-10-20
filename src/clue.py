@@ -29,11 +29,11 @@ def assign_clues(clue_strings: list[str], solution: str, width: int) -> list[Clu
     for pos, cell in enumerate(solution):
         clue_assigned = False
         x, y = get_pos(pos, width)
-        if cell != "." and (x == 0 or solution[pos - 1] == "."):
+        if cell != "." and (y == 0 or solution[pos - 1] == "."):
             clues.append(Clue(clue_strings.pop(0), ACROSS, pos = (x, y), number = current_clue_number))
             clue_assigned = True
 
-        if cell != "." and (y == 0 or (pos >= width and solution[pos - width] == ".")):
+        if cell != "." and (x == 0 or (pos >= width and solution[pos - width] == ".")):
             clues.append(Clue(clue_strings.pop(0), DOWN, pos = (x, y), number = current_clue_number))
             clue_assigned = True
 

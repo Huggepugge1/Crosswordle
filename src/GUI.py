@@ -1,8 +1,10 @@
 import pygame
 import random
 import string
-import crossword_reader
+
+import crossword
 import cell
+import clue
 from get_pos import get_pos
 import textwrap
 
@@ -11,7 +13,7 @@ ACROSS = 0
 
 
 class GUI_Cell:
-    def __init__(self, rect, pos, cell):
+    def __init__(self, rect, pos: int, cell: cell.Cell):
         self.rect = rect
         self.pos = pos
         self.cell = cell
@@ -26,7 +28,7 @@ class GUI_Cell:
                 self.color = "yellow"
 
 
-def initialize_gui_cells(screen, screen_width, screen_height, crossword): 
+def initialize_gui_cells(screen, screen_width: int, screen_height: int, crossword: crossword.Crossword) -> list[GUI_Cell]: 
     padding_bottom = 200
     padding_top = 25
 
@@ -45,7 +47,7 @@ def initialize_gui_cells(screen, screen_width, screen_height, crossword):
     return gui_cells
 
 
-def update_cell_clue_number(screen, font_size, content, gui_cell):
+def update_cell_clue_number(screen, font_size: int, content: str, gui_cell: GUI_Cell):
     font = pygame.font.Font('freesansbold.ttf', font_size)
     gui_cell_content = font.render(content, True, "black")
     gui_cell_content_rect = gui_cell_content.get_rect()
@@ -53,7 +55,7 @@ def update_cell_clue_number(screen, font_size, content, gui_cell):
     screen.blit(gui_cell_content, gui_cell_content_rect)
 
 
-def update_clue_text(screen, font_size, content, pos): 
+def update_clue_text(screen, font_size: int, content: str, pos: tuple[int, int]): 
     font = pygame.font.Font('freesansbold.ttf', font_size)
     clue_text = font.render(content, True, "black")
     clue_text_rect = clue_text.get_rect()
@@ -61,7 +63,14 @@ def update_clue_text(screen, font_size, content, pos):
     screen.blit(clue_text, clue_text_rect)
 
 
-def update_clues(screen, screen_width, screen_height, crossword, clue_number_font_size, clue_font_size, gui_cell, clues):
+def update_clues(screen, 
+                 screen_width: int, 
+                 screen_height: int, 
+                 crossword: crossword.Crossword, 
+                 clue_number_font_size: int, 
+                 clue_font_size: int, 
+                 gui_cell: GUI_Cell, 
+                 clues: list[clue.Clue]):
     # Draw clues
     padding_bottom = 150
     
@@ -95,7 +104,7 @@ def update_clues(screen, screen_width, screen_height, crossword, clue_number_fon
                     update_clue_text(screen, clue_font_size, f"{clue.number}. " * int(row == 0) + string, pos)
 
 
-def update_cell_text(screen, font_size, content, gui_cell):
+def update_cell_text(screen, font_size: int, content: str, gui_cell: GUI_Cell):
     font = pygame.font.Font('freesansbold.ttf', font_size)
     gui_cell_content = font.render(content, True, "black")
     gui_cell_content_rect = gui_cell_content.get_rect()
@@ -103,7 +112,13 @@ def update_cell_text(screen, font_size, content, gui_cell):
     screen.blit(gui_cell_content, gui_cell_content_rect)
 
 
-def update_gui_cell(screen, screen_width, screen_height, crossword, gui_cell, selected_gui_cell, clues):
+def update_gui_cell(screen, 
+                    screen_width: int, 
+                    screen_height: int, 
+                    crossword: crossword.Crossword, 
+                    gui_cell: GUI_Cell, 
+                    selected_gui_cell: int, 
+                    clues: list[clue.Clue]):
     if gui_cell.cell.content == ".":
         pygame.draw.rect(screen, "black", gui_cell.rect)
     
@@ -121,7 +136,14 @@ def update_gui_cell(screen, screen_width, screen_height, crossword, gui_cell, se
     clue_font_size = 20
     update_clues(screen, screen_width, screen_height, crossword, clue_number_font_size, clue_font_size, gui_cell, clues)
 
-def draw_crossword(screen, screen_width, screen_height, crossword, gui_cells, selected_gui_cell, clues):       
+
+def draw_crossword(screen, 
+                   screen_width: int, 
+                   screen_height: int, 
+                   crossword: crossword.Crossword, 
+                   gui_cells: list[GUI_Cell], 
+                   selected_gui_cell: int, 
+                   clues: list[clue.Clue]):       
     screen.fill("white")
     padding_bottom = 150
 
@@ -142,16 +164,160 @@ def draw_crossword(screen, screen_width, screen_height, crossword, gui_cells, se
     # Draw gui_cells
     for gui_cell in gui_cells:
         update_gui_cell(screen, screen_width, screen_height, crossword, gui_cell, selected_gui_cell, clues)
+
+    pygame.display.flip()
                 
 
-def select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues):
+def select_cell(screen, 
+                screen_width: int, 
+                screen_height: int, 
+                crossword: crossword.Crossword, 
+                gui_cells: list[GUI_Cell], 
+                last_selected_gui_cell: int, 
+                selected_gui_cell: int, 
+                clues: list[clue.Clue]):
     gui_cell = gui_cells[last_selected_gui_cell]
     update_gui_cell(screen, screen_width, screen_height, crossword, gui_cell, selected_gui_cell, clues)
     gui_cell = gui_cells[selected_gui_cell]
     update_gui_cell(screen, screen_width, screen_height, crossword, gui_cell, selected_gui_cell, clues)
     pygame.display.flip()
 
-def main(crossword):
+
+def handle_textinput(screen, 
+                     screen_width: int, 
+                     screen_height: int, 
+                     event: str, 
+                     crossword: crossword.Crossword, 
+                     gui_cells: list[GUI_Cell], 
+                     selected_gui_cell: int, 
+                     clues: list[clue.Clue]):
+    crossword_size = crossword.width * crossword.height
+    gui_cells[selected_gui_cell].cell.content = event.text.upper() if gui_cells[selected_gui_cell].cell.content != "." else "."
+    
+    last_selected_gui_cell = selected_gui_cell
+    bottom_right = selected_gui_cell == crossword_size - 1
+    if not bottom_right:
+        selected_gui_cell += 1
+    bottom_right = selected_gui_cell == crossword_size - 1
+    
+    while not bottom_right and gui_cells[selected_gui_cell].cell.content == ".":
+        selected_gui_cell += 1
+        bottom_right = selected_gui_cell == crossword_size - 1
+
+    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
+    return selected_gui_cell
+
+def handle_mouseinput(screen,
+                     screen_width: int, 
+                     screen_height: int, 
+                     event, 
+                     crossword: crossword.Crossword, 
+                     gui_cells: list[GUI_Cell], 
+                     selected_gui_cell: int, 
+                     clues: list[clue.Clue]) -> int:
+    last_selected_gui_cell = selected_gui_cell
+    for gui_cell in gui_cells:
+        if gui_cell.rect.collidepoint(event.pos):
+            if gui_cell.cell.content != ".":
+                selected_gui_cell = gui_cell.pos
+            break
+    
+    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
+    return selected_gui_cell
+
+
+def handle_arrowkey(screen,
+                screen_width: int, 
+                screen_height: int, 
+                event, 
+                crossword: crossword.Crossword, 
+                gui_cells: list[GUI_Cell], 
+                selected_gui_cell: int, 
+                clues: list[clue.Clue]) -> int:
+        
+    crossword_size = crossword.width * crossword.height
+    last_selected_gui_cell = selected_gui_cell
+
+    direction = {
+        pygame.K_UP: -crossword.width,
+        pygame.K_DOWN: crossword.width,
+        pygame.K_LEFT: -1,
+        pygame.K_RIGHT: 1
+    }
+        
+    if event.key == pygame.K_UP or event.key == pygame.K_LEFT:
+        constraint = lambda selected_gui_cell: max(selected_gui_cell + direction[event.key], -1) == -1
+    else:
+        constraint = lambda selected_gui_cell: min(selected_gui_cell + direction[event.key], crossword_size) == crossword_size
+
+    if not constraint(selected_gui_cell):
+        selected_gui_cell = selected_gui_cell + direction[event.key]
+    
+    while gui_cells[selected_gui_cell].cell.content == "." and not constraint(selected_gui_cell):
+        selected_gui_cell = selected_gui_cell + direction[event.key]
+
+    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
+    return selected_gui_cell
+
+
+def delete_char(screen,
+                screen_width: int, 
+                screen_height: int, 
+                crossword: crossword.Crossword, 
+                gui_cells: list[GUI_Cell], 
+                selected_gui_cell: int, 
+                clues: list[clue.Clue]) -> int:
+    
+    crossword_size = crossword.width * crossword.height
+    last_selected_gui_cell = selected_gui_cell
+    if gui_cells[selected_gui_cell].cell.content == "":
+        top_left = selected_gui_cell == 0
+        if not top_left:
+            selected_gui_cell -= 1
+        top_left = selected_gui_cell == 0
+    
+        while not top_left and gui_cells[selected_gui_cell].cell.content == ".":
+            selected_gui_cell -= 1
+            top_left = selected_gui_cell == 0
+
+    gui_cells[last_selected_gui_cell].cell.content = "." if gui_cells[last_selected_gui_cell].cell.content == "." else ""
+    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
+    return selected_gui_cell
+
+
+def handle_keydown(screen,
+                   screen_width: int, 
+                   screen_height: int, 
+                   event, 
+                   crossword: crossword.Crossword, 
+                   gui_cells: list[GUI_Cell], 
+                   selected_gui_cell: int, 
+                   clues: list[clue.Clue]) -> int:
+    
+    if event.key == pygame.K_ESCAPE:
+        pygame.quit()
+        exit()
+
+    elif event.key == pygame.K_RETURN:
+        for gui_cell in gui_cells:
+            gui_cell.change_color()
+            update_gui_cell(screen, screen_width, screen_height, crossword, gui_cell, selected_gui_cell, clues)
+            pygame.display.flip()
+    
+    elif event.key == pygame.K_TAB:
+        draw_crossword(screen, screen_width, screen_height, crossword, gui_cells, selected_gui_cell, clues)
+        pygame.display.flip()
+
+    elif event.key == pygame.K_BACKSPACE:
+        selected_gui_cell = delete_char(screen, screen_width, screen_height, crossword, gui_cells, selected_gui_cell, clues)
+    
+    elif event.key == pygame.K_UP or event.key == pygame.K_DOWN or event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+        selected_gui_cell = handle_arrowkey(screen, screen_width, screen_height, event, crossword, gui_cells, selected_gui_cell, clues)
+
+    return selected_gui_cell
+
+
+def main(crossword: crossword.Crossword):
     pygame.init()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     screen_width, screen_height = screen.get_rect().width, screen.get_rect().height
@@ -163,7 +329,6 @@ def main(crossword):
 
     selected_gui_cell = 0
     draw_crossword(screen, screen_width, screen_height, crossword, gui_cells, selected_gui_cell, clues)
-    pygame.display.flip()
     
     while True:       
         for event in pygame.event.get():
@@ -172,114 +337,11 @@ def main(crossword):
                 exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                last_selected_gui_cell = selected_gui_cell
-                for gui_cell in gui_cells:
-                    if gui_cell.rect.collidepoint(event.pos):
-                        if gui_cell.cell.content != ".":
-                            selected_gui_cell = gui_cell.pos
-                        break
-                
-                select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
-                
+                selected_gui_cell = handle_mouseinput(screen, screen_width, screen_height, event, crossword, gui_cells, selected_gui_cell, clues) 
                 
             elif event.type == pygame.TEXTINPUT:
-                crossword_size = crossword.width * crossword.height
-                gui_cells[selected_gui_cell].cell.content = event.text.upper() if gui_cells[selected_gui_cell].cell.content != "." else "."
-                
-                last_selected_gui_cell = selected_gui_cell
-                bottom_right = selected_gui_cell == crossword_size - 1
-                if not bottom_right:
-                    selected_gui_cell += 1
-                bottom_right = selected_gui_cell == crossword_size - 1
-                
-                while not bottom_right and gui_cells[selected_gui_cell].cell.content == ".":
-                    selected_gui_cell += 1
-                    bottom_right = selected_gui_cell == crossword_size - 1
-
-                select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
+                selected_gui_cell = handle_textinput(screen, screen_width, screen_height, event, crossword, gui_cells, selected_gui_cell, clues)
 
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    for gui_cell in gui_cells:
-                        gui_cell.change_color()
-                        update_gui_cell(screen, screen_width, screen_height, crossword, gui_cell, selected_gui_cell, clues)
-                        pygame.display.flip()
-                
-                elif event.key == pygame.K_TAB:
-                    draw_crossword(screen, screen_width, screen_height, crossword, gui_cells, selected_gui_cell, clues)
-                    pygame.display.flip()
-
-                elif event.key == pygame.K_BACKSPACE:
-                    last_selected_gui_cell = selected_gui_cell
-                    crossword_size = crossword.width * crossword.height
-                    previous_content = gui_cells[selected_gui_cell].cell.content
-                    gui_cells[last_selected_cell].cell.content = "" if gui_cells[last_selected_cell].cell.content != "." else "."
-                    
-                    if previous_content == "":
-                        top_left = selected_gui_cell == -1
-                        if not top_left:
-                            selected_gui_cell -= 1
-                        top_left = selected_gui_cell == -1
-                    
-                        while not top_left and gui_cell[selected_gui_cell].cell.content == ".":
-                            selected_gui_cell -= 1
-                            bottom_right = selected_gui_cell == crossword_size - 1
-
-                    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
-                
-                elif event.key == pygame.K_UP:
-                    last_selected_gui_cell = selected_gui_cell
-                    
-                    top = max(selected_gui_cell - crossword.width, -1) == -1
-                    if not top:
-                        selected_gui_cell = selected_gui_cell - crossword.width
-                    
-                    while gui_cells[selected_gui_cell].cell.content == "." and not top:
-                        selected_gui_cell = selected_gui_cell - crossword.width
-                        top = max(selected_gui_cell - crossword.width, -1) == -1
-
-                    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
-                
-                elif event.key == pygame.K_DOWN:
-                    last_selected_gui_cell = selected_gui_cell
-                    crossword_size = crossword.width * crossword.height
-                    
-                    bottom = min(selected_gui_cell + crossword.width, crossword_size) == crossword_size
-                    if not bottom:
-                        selected_gui_cell = selected_gui_cell + crossword.width
-                    bottom = min(selected_gui_cell + crossword.width, crossword_size) == crossword_size
-                    
-                    while gui_cells[selected_gui_cell].cell.content == "." and not bottom:
-                        selected_gui_cell = selected_gui_cell + crossword.width
-                        bottom = min(selected_gui_cell + crossword.width, crossword_size) == crossword_size
-
-                    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
-                
-                elif event.key == pygame.K_LEFT:
-                    last_selected_gui_cell = selected_gui_cell
-                    
-                    top_left = selected_gui_cell == 0
-                    if not top_left:
-                        selected_gui_cell = selected_gui_cell - 1
-                    
-                    while gui_cells[selected_gui_cell].cell.content == "." and not top_left:
-                        selected_gui_cell = selected_gui_cell - 1
-                        top_left = selected_gui_cell == 0
-
-                    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
-                
-                elif event.key == pygame.K_RIGHT:
-                    last_selected_gui_cell = selected_gui_cell
-                    crossword_size = crossword.width * crossword.height
-                    
-                    bottom_right = selected_gui_cell == crossword_size - 1
-                    if not bottom_right:
-                        selected_gui_cell = selected_gui_cell + 1
-                    bottom_right = selected_gui_cell == crossword_size - 1
-                    
-                    while gui_cells[selected_gui_cell].cell.content == "." and not bottom_right:
-                        selected_gui_cell = selected_gui_cell + 1
-                        bottom_right = selected_gui_cell == crossword_size - 1
-                    
-                    select_cell(screen, screen_width, screen_height, crossword, gui_cells, last_selected_gui_cell, selected_gui_cell, clues)
+                selected_gui_cell = handle_keydown(screen, screen_width, screen_height, event, crossword, gui_cells, selected_gui_cell, clues)
 

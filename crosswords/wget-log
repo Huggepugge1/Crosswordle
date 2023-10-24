@@ -1,0 +1,11 @@
+--2023-10-18 10:15:34--  https://www.cruciverb.com/puzzles.php?op=showarch
+Resolving www.cruciverb.com (www.cruciverb.com)... 159.89.118.99
+Connecting to www.cruciverb.com (www.cruciverb.com)|159.89.118.99|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 6749 (6.6K) [text/html]
+Saving to: ‘puzzles.php?op=showarch’
+
+puzzles.php?op=showarch                  0%[                                                                             ]       0  --.-KB/s               puzzles.php?op=showarch                100%[============================================================================>]   6.59K  --.-KB/s    in 0s      
+
+2023-10-18 10:15:35 (137 MB/s) - ‘puzzles.php?op=showarch’ saved [6749/6749]
+
